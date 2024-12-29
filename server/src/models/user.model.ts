@@ -1,5 +1,6 @@
 import { Schema, Document, model } from "mongoose";
-
+import bcrypt from "bcrypt"
+import jwt from "jsonwebtoken";
 export interface IUser extends Document {
     username: string;
     firstName: string;
@@ -57,7 +58,25 @@ const userSchema = new Schema<IUser>(
     },
     { timestamps: true }
 );
+userSchema.pre("save",async function(){
+    if (!this.isModified("password")){
+        this.password = await bcrypt.hash(this.password,10);
+    }
+})
+userSchema.methods.generateAccessToken = function(){
+    return jwt.sign(
+        {
+            _id : this._id
+        },
+        
+    )
+};
+userSchema.methods.generateRefreshToken = function(){};
+userSchema.methods.generateTokens = function(){};
+userSchema.methods.comparePassword = function(){};
 
 const User = model<IUser>("User", userSchema);
+
+
 
 export default User;
